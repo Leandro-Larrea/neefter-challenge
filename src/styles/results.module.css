@@ -1,0 +1,40 @@
+.main{
+    background-color: beige;
+    height: 100vh;
+    display: grid;
+    justify-items: center;
+    padding: 20px;
+    align-items: center;
+}
+.container{
+    border-radius: 20px;
+    background-color: rgb(16, 19, 29);;
+    height: 100%;
+    width: 100%;
+    max-width: 800px;
+    max-height: 800px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    box-shadow: 0 0 10px black;
+
+}
+
+
+
+.item{
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    height: 100px;
+}
+.title1{
+    background-color: rgb(233, 95, 45);
+    justify-self: flex-start;
+    margin: 0;
+    color: white;
+}
+.result{
+    font-size: 18px;
+}
