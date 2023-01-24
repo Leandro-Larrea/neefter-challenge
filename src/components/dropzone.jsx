@@ -1,29 +1,76 @@
 import React, {useCallback} from 'react'
 import {useDropzone} from 'react-dropzone'
+import { Container } from 'reactstrap'
+import Dropzone from 'react-dropzone'
+import { useState } from 'react'
+import style from "../styles/dropzone.module.css"
+import axios from 'axios'
+import { useContext } from 'react'
+import { ImageContext } from '../context/imageContext'
+import gifLoader from "../images/loader2.gif"
 
-export default function MyDropzone() {
-  const onDrop = useCallback((acceptedFiles) => {
-    acceptedFiles.forEach((file) => {
-      const reader = new FileReader()
+export default function MyDropzone(props) {
 
-      reader.onabort = () => console.log('file reading was aborted')
-      reader.onerror = () => console.log('file reading has failed')
-      reader.onload = () => {
-      // Do whatever you want with the file contents
-        const binaryStr = reader.result
-        console.log(binaryStr)
-      }
-      reader.readAsArrayBuffer(file)
+  const {image, setImage} = useContext(ImageContext)
+  const [loading, setLoading] = useState(false)
+  console.log(image)
+  const handleDrop =  (files)=>{
+    const upLoaders = files.map((file) =>{
+      let formData = new FormData();
+      formData.append('file', file);
+      formData.append('tags',`codeinfuse, medium, gist`);
+      formData.append('upload_preset','imagesNFT');
+      formData.append('api_key',process.env.REACT_APP_API_KEY);
+      formData.append('timestamp',(Date.now()/1000) | 0);
+      setLoading(true)
+      return  axios.post("https://api.cloudinary.com/v1_1/dkiyjbo6u/image/upload", formData, {
+          headers: {"X-Requested-With": "XMLHttpRequest"},
+      })
+      .then((response)=>{
+        const data = response.data
+        const imageUrl = data.secure_url
+        setImage(imageUrl)
+        console.log(imageUrl)
+      })
     })
-    
-  }, [])
-  const {getRootProps, getInputProps} = useDropzone({onDrop})
+  
+    axios.all(upLoaders).then(()=>{
+      setLoading(false);
+    })
+  }
 
-  return (
-    <div {...getRootProps()}>
-        
-      <input {...getInputProps()} />
-      <p style={{color:"white", cursor:"pointer"}}>Drag 'n' drop some files here, or click to select files</p>
+  const imagePreview = ()=> {
+    return image?
+      <img className={style.image} src={image}></img>:
+        loading?
+          <img className={style.gif} src={gifLoader}></img>:
+            <p>Not image</p>
+    }
+  
+
+
+  return(
+    <div><Container>
+      <h1 className='text-center'>Sube tus imagenes aqui</h1>
+          <Dropzone className={style.dropzone}
+           onDrop={handleDrop}
+           onChange={(e)=> setImage(e.target.value)}
+          value={image}
+          >
+              {({getRootProps, getInputProps})=> (
+                  <section>
+                      <div {...getRootProps({className: style.dropzone})}>
+                          <input {...getInputProps()}/>
+                          <span>📂</span>
+                          <p>coloca tus imagenes aqui o clickea para seleccionar</p>
+                      </div>
+                  </section>
+              )}
+          </Dropzone>
+          <div className={style.loaderContainer}>
+              {imagePreview()}
+            </div>
+        </Container>
     </div>
   )
 }

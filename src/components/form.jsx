@@ -1,60 +1,101 @@
+import axios from "axios";
+import { useCallback, useContext, useMemo } from "react";
 import { useEffect, useState } from "react";
+import { ImageContext, ImageProvider } from "../context/imageContext";
 import style from "../styles/form.module.css"
+import { CreateButton } from "./createButton";
 import MyDropzone from "./dropzone";
 
-
 export const Form = ()=>{
-
-    const [nft, setNft] = useState({    
+    const {image, setImage} = useContext(ImageContext)
+    const initialNft ={
         name: '',
         recipient: '',
-        image: '',
+        image: image,
         description: '',
         collection:"solana",
-        attributes:[]
-    })
-
+        attributes:[],
+        id:null}
+    const [nft, setNft] = useState(initialNft)
+    const [status, setStatus] = useState(false)
     const [property, setProperty] = useState({
         nftKey: '',
         nftValue: '',
     })
-
     const [loader,setLoader] = useState(false)
 
-
-    const url = 'https://staging.crossmint.com/api/2022-06-09/collections/default-solana/nfts'; 
-    const createNft = (e)=>{
-    e.preventDefault()
+    useEffect(()=>{
+        setNft({...nft, image:image })
+    },[image])
+   
+    const createNft = (e)=>{  
+        e.preventDefault()
+        const url = `https://staging.crossmint.com/api/2022-06-09/collections/default-${nft.collection}/nfts`; 
+        
     setLoader(true)
     fetch(url, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          'x-client-secret': 'sk_test.6mcNBCN9.KBMpyauMf9YEscw8zsokUhWSpCnnenFo',
-          'x-project-id': '748a2029-cfd3-46d0-a9e6-fedba7ca80a2'
+          "x-client-secret": process.env.REACT_APP_CLIENT,
+          'x-project-id': process.env.REACT_APP_PROJECT_ID
         },
         body: JSON.stringify( {
               recipient: "email:" + nft.recipient + ":" + nft.collection,
               metadata: {
                   name: nft.name,
-                  image: "https://www.shutterstock.com/image-photo/surreal-image-african-elephant-wearing-260nw-1365289022.jpg",
-                  description: nft.description
+                  image: nft.image,
+                  description: nft.description,     
                   }
               })
       })
-    .then(res => res.json())
-    .then(json => {console.log(json)
-    setLoader(false)})
-    .catch(err => console.error('error:' + err));
-}
-
-    useEffect(()=>{
-        console.log(nft)
-    },[nft])
+     .then(res => res.json())
+     .then(resJ => {if(resJ.id) {
+                setNft({...initialNft, id: resJ.id, collection: nft.collection})
+                setStatus("your nft status it's pending")
+                setImage(null)
+                setLoader(false)
+                return
+            }
+            setStatus("something went wrong")
+            setLoader(false)
+            return 
+        }
+    )
+     .catch(error => {
+        setStatus("something went wrong")
+        setLoader(false)
+    })
+    // .then((obj) =>{
+    //     setTimeout(() => {
+    //         fetch(`https://staging.crossmint.com/api/2022-06-09/collections/default-${nft.collection}/nfts/${obj.id}` ,{
+    //         method: 'GET',
+    //         headers: {
+    //           "x-client-secret": process.env.REACT_APP_CLIENT,
+    //           'x-project-id': process.env.REACT_APP_PROJECT_ID
+    //         }
+    // })
+    // .then(a => a.json())
+    // .then(b=> {
+    //         if(b.onChain.mintHash){
+    //             setNftHash(b.onChain.mintHash)
+    //             }
+    //             setLoader(false)
+    //             setNft({  name: '',
+    //             recipient: '',
+    //             image: image,
+    //             description: '',
+    //             collection:"solana",
+    //             attributes:[]})
+    //         }
+    //     )
+    //     }, 7000);    
+    // } )
+            
+    }
 
     const handleInput = (e)=>{
         const {name, value} = e.target
-        console.log("name:",name, "value:",value)
         if(name === "description" && value.length > 300) return
         if(name !== "description" && value.length > 100) return  
         setNft({...nft,[name]: value})
@@ -76,24 +117,12 @@ export const Form = ()=>{
         })
     }
 
-     function handleFileInputChange(e) {
-        const reader = new FileReader()
-        reader.readAsDataURL(e.target.files[0]) 
-        reader.onloadend =  () => {
-          setNft({...nft, [e.target.name]: reader.result})
-        }    
-    }
-
     return (
         <main className={style.main}>
             <h1>Mint your own NFT</h1>
             <form className={style.form} onSubmit={createNft}>
-                {/* <MyDropzone></MyDropzone> */}
+                <MyDropzone></MyDropzone>
                 <div className={style.containerItems}>
-                <div className={style.item}>
-                        <label className={style.label} htmlFor="image">image: {!nft.image.length && "required"}</label>
-                        <input name="image" className={style.input} type="file"  onChange={handleFileInputChange}></input>
-                    </div>
                     <div className={style.item}>
                         <label className={style.label} htmlFor="name">Name: {!nft.name.length && "required"}</label>
                         <input name="name" className={style.input} type="text"  onChange={handleInput} value={nft.name}></input>
@@ -127,18 +156,24 @@ export const Form = ()=>{
                     <button onClick={createProperty} className={style.properties}>Add</button>
                 </div>
                 <section className={style.nftContainer}>
-                    {Object.keys(nft).filter((e)=> e !== "attributes").map(e=> <p className={style.nftKey} key={e}>{e}: {nft[e]}</p>)}
-                    {nft.attributes?.map((e,i)=> 
-                        <div style={{margin:"16px 0"}} key={i}>
-                            <p>{`Attribute ${i + 1}:`}</p>
-                            <p style={{color:"white"}}> {e.trait_type}: {e.value}</p>
-                        </div>
-                    )}
-                </section>
-                {!loader?<button type="submit" className={style.button}>Create</button>:
-                    <button  className={style.buttonLoading}></button>}
+                    <div className={style.nftProperties}>
+                        <p className={style.nftKey}>Name: {nft.name}</p>
+                        <p className={style.nftKey}>Recipient: {nft.recipient}</p>
+                        <p className={style.nftKey}>Collection: {nft.collection}</p>
+                        <p className={style.nftKey}>Description: {nft.description}</p>
+
+                        {nft.attributes?.map((e,i)=> 
+                            <div style={{margin:"16px 0"}} key={i}>
+                                <p>{`Attribute ${i + 1}:`}</p>
+                                <p style={{color:"white"}}> {e.trait_type}: {e.value}</p>
+                            </div>
+                        )}
+                    </div>
+                    {image && <img src={image} hrf="not image"></img>}
+                </section>          
+                <CreateButton loader={loader}></CreateButton>
+                    {status && <p>{status}</p>}
             </form>
-            
         </main>
     )
 }
