@@ -5,6 +5,7 @@ import { ImageContext, ImageProvider } from "../context/imageContext";
 import style from "../styles/form.module.css"
 import { CreateButton } from "./createButton";
 import MyDropzone from "./dropzone";
+import { GetButton } from "./getButton";
 
 export const Form = ()=>{
     const {image, setImage} = useContext(ImageContext)
@@ -27,6 +28,10 @@ export const Form = ()=>{
     useEffect(()=>{
         setNft({...nft, image:image })
     },[image])
+
+    const changeStatus =(text)=>{
+        setStatus(text)
+    }
    
     const createNft = (e)=>{  
         e.preventDefault()
@@ -65,33 +70,7 @@ export const Form = ()=>{
      .catch(error => {
         setStatus("something went wrong")
         setLoader(false)
-    })
-    // .then((obj) =>{
-    //     setTimeout(() => {
-    //         fetch(`https://staging.crossmint.com/api/2022-06-09/collections/default-${nft.collection}/nfts/${obj.id}` ,{
-    //         method: 'GET',
-    //         headers: {
-    //           "x-client-secret": process.env.REACT_APP_CLIENT,
-    //           'x-project-id': process.env.REACT_APP_PROJECT_ID
-    //         }
-    // })
-    // .then(a => a.json())
-    // .then(b=> {
-    //         if(b.onChain.mintHash){
-    //             setNftHash(b.onChain.mintHash)
-    //             }
-    //             setLoader(false)
-    //             setNft({  name: '',
-    //             recipient: '',
-    //             image: image,
-    //             description: '',
-    //             collection:"solana",
-    //             attributes:[]})
-    //         }
-    //     )
-    //     }, 7000);    
-    // } )
-            
+    })          
     }
 
     const handleInput = (e)=>{
@@ -171,7 +150,9 @@ export const Form = ()=>{
                     </div>
                     {image && <img src={image} hrf="not image"></img>}
                 </section>          
-                <CreateButton loader={loader}></CreateButton>
+                {status === "your nft status it's pending" || status === "getting hash..."?
+                <GetButton status={status} id={nft.id} setStatus={changeStatus} collection={nft.collection}></GetButton>:
+                <CreateButton loader={loader} ></CreateButton>}
                     {status && <p>{status}</p>}
             </form>
         </main>
