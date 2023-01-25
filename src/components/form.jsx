@@ -2,6 +2,7 @@ import axios from "axios";
 import { useCallback, useContext, useMemo } from "react";
 import { useEffect, useState } from "react";
 import { ImageContext, ImageProvider } from "../context/imageContext";
+import { cleanProperties, generateTimestamp } from "../functions/rebuildProperties";
 import style from "../styles/form.module.css"
 import { CreateButton } from "./createButton";
 import MyDropzone from "./dropzone";
@@ -16,7 +17,8 @@ export const Form = ()=>{
         description: '',
         collection:"solana",
         attributes:[],
-        id:null}
+        birth:"",
+        id:""}
     const [nft, setNft] = useState(initialNft)
     const [status, setStatus] = useState(false)
     const [property, setProperty] = useState({
@@ -33,10 +35,16 @@ export const Form = ()=>{
         setStatus(text)
     }
    
-    const createNft = (e)=>{  
+    const createNft = async(e)=>{  
         e.preventDefault()
+        let newNft = nft
+        if(nft.birth){
+            newNft = {...newNft, attributes:[...nft.attributes,{display_type:"date",trait_type:"birthday", value: generateTimestamp(nft.birth)}], birth:""}
+             console.log(newNft) 
+        }
+        if(!nft.image || !nft.name|| !nft.description || !nft.recipient) return alert("be sure of completing all required fields and upload and image")
         const url = `https://staging.crossmint.com/api/2022-06-09/collections/default-${nft.collection}/nfts`; 
-        
+      
     setLoader(true)
     fetch(url, {
         method: 'POST',
@@ -48,9 +56,11 @@ export const Form = ()=>{
         body: JSON.stringify( {
               recipient: "email:" + nft.recipient + ":" + nft.collection,
               metadata: {
-                  name: nft.name,
-                  image: nft.image,
-                  description: nft.description,     
+                //   name: nft.name,
+                //   image: nft.image,
+                //   description: nft.description,
+                //   attributes: nft
+                ...cleanProperties(newNft)
                   }
               })
       })
@@ -58,7 +68,7 @@ export const Form = ()=>{
      .then(resJ => {if(resJ.id) {
                 setNft({...initialNft, id: resJ.id, collection: nft.collection})
                 setStatus("your nft status it's pending")
-                setImage(null)
+                setImage("")
                 setLoader(false)
                 return
             }
@@ -75,13 +85,13 @@ export const Form = ()=>{
 
     const handleInput = (e)=>{
         const {name, value} = e.target
-        if(name === "description" && value.length > 300) return
-        if(name !== "description" && value.length > 100) return  
+        if(name === "description" && value.length > 64) return
+        if(name !== "description" && value.length > 64) return  
         setNft({...nft,[name]: value})
     }
 
     const handleProperty=(e)=>{
-        const {name, value} = e.target
+        const {name, value} = e.target;
         if(name === "nftKey" && value.length > 227) return
         setProperty({...property,[name]:value})
     }
@@ -100,15 +110,15 @@ export const Form = ()=>{
         <main className={style.main}>
             <h1>Mint your own NFT</h1>
             <form className={style.form} onSubmit={createNft}>
-                <MyDropzone></MyDropzone>
+                <MyDropzone nft={nft}></MyDropzone>
                 <div className={style.containerItems}>
                     <div className={style.item}>
                         <label className={style.label} htmlFor="name">Name: {!nft.name.length && "required"}</label>
-                        <input name="name" className={style.input} type="text"  onChange={handleInput} value={nft.name}></input>
+                        <input name="name" required={true} className={style.input} type="text"  onChange={handleInput} value={nft.name}></input>
                     </div>
                     <div className={style.item}>
-                         <label className={style.label} htmlFor="recipient">Recipient: {!nft.recipient.length && "required"}</label>
-                        <input name="recipient" className={style.input} type="text" onChange={handleInput} value={nft.recipient}></input>
+                         <label className={style.label} htmlFor="recipient">Recipient:  {!nft.recipient.length && "required"}</label>
+                        <input name="recipient" required={true} className={style.input} type="text" onChange={handleInput} value={nft.recipient}></input>
                     </div>
                     <div className={style.item}>
                          <label className={style.label} htmlFor="recipient">Collection id: {!nft.recipient.length && "required"}</label>
@@ -116,13 +126,17 @@ export const Form = ()=>{
                             <option>solana</option>
                             <option>polygon</option>
                         </select>
-                    </div>      
+                    </div> 
+                    <div className={style.item}>
+                         <label className={style.label} htmlFor="birth">birth: (optionally)</label>
+                        <input name="birth" className={style.input} type="date" onChange={handleInput} value={nft.birth}></input>
+                    </div>   
                 </div>
-                <div className={style.item}>
+                
                         <label className={style.label} htmlFor="description">Description: {!nft.description.length && "required"}</label>
-                        <textarea name="description" className={style.textarea} type="text" onChange={handleInput} value={nft.description}></textarea>
-                        <p className={style.textLength}>{nft.description.length}/300</p>
-                </div>
+                        <textarea required={true} name="description" className={style.textarea} type="text" onChange={handleInput} value={nft.description}></textarea>
+                        <p className={style.textLength}>{nft.description.length}/64</p>
+                
                 <div className={style.containerItems}>
                     <div className={style.item}>
                         <label className={style.label} htmlFor="nftKey">Property: (optionally)</label>
@@ -132,7 +146,9 @@ export const Form = ()=>{
                          <label className={style.label} htmlFor="nftValue">value:</label>
                         <input onChange={handleProperty} name="nftValue" className={style.input} type="text" value={property.nftValue}></input>
                     </div>
+                   
                     <button onClick={createProperty} className={style.properties}>Add</button>
+                    
                 </div>
                 <section className={style.nftContainer}>
                     <div className={style.nftProperties}>
@@ -140,7 +156,7 @@ export const Form = ()=>{
                         <p className={style.nftKey}>Recipient: {nft.recipient}</p>
                         <p className={style.nftKey}>Collection: {nft.collection}</p>
                         <p className={style.nftKey}>Description: {nft.description}</p>
-
+                        {nft.birth &&  <p className={style.birth}>birthday: {nft.birth}</p>}
                         {nft.attributes?.map((e,i)=> 
                             <div style={{margin:"16px 0"}} key={i}>
                                 <p>{`Attribute ${i + 1}:`}</p>

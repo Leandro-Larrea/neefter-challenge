@@ -9,7 +9,7 @@ import { useContext } from 'react'
 import { ImageContext } from '../context/imageContext'
 import gifLoader from "../images/loader2.gif"
 
-export default function MyDropzone(props) {
+export default function MyDropzone({nft}) {
 
   const {image, setImage} = useContext(ImageContext)
   const [loading, setLoading] = useState(false)
@@ -41,7 +41,9 @@ export default function MyDropzone(props) {
 
   const imagePreview = ()=> {
     return image?
-      <img className={style.image} src={image}></img>:
+      <div className={style.imageContainer}>
+        <img className={style.image} src={image}></img>
+      </div>:
         loading?
           <img className={style.gif} src={gifLoader}></img>:
             <p>Not image</p>
@@ -51,7 +53,7 @@ export default function MyDropzone(props) {
 
   return(
     <div><Container>
-      <h1 className='text-center'>Sube tus imagenes aqui</h1>
+      <h3 className='text-center'>Sube tu imagenes aqui {!nft.image && "(required)"}</h3>
           <Dropzone className={style.dropzone}
            onDrop={handleDrop}
            onChange={(e)=> setImage(e.target.value)}
