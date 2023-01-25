@@ -138,8 +138,9 @@ export const Form = ()=>{
                         <p className={style.textLength}>{nft.description.length}/64</p>
                 
                 <div className={style.containerItems}>
+                    <h3 style={{width:"100%", textAlign:"center"}}>optionally you can add custom "attributes"</h3>
                     <div className={style.item}>
-                        <label className={style.label} htmlFor="nftKey">Property: (optionally)</label>
+                        <label className={style.label} htmlFor="nftKey">key </label>
                         <input onChange={handleProperty} name="nftKey" id="nftKey" className={style.input} type="text"  value={property.nftKey}></input>
                     </div>
                     <div className={style.item}>
