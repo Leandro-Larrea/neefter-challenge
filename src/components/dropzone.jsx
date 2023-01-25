@@ -53,7 +53,7 @@ export default function MyDropzone({nft}) {
 
   return(
     <div><Container>
-      <h3 className='text-center'>Sube tu imagenes aqui {!nft.image && "(required)"}</h3>
+      <h3 className='text-center'>Sube tu imagen aqui {!nft.image && "(required)"}</h3>
           <Dropzone className={style.dropzone}
            onDrop={handleDrop}
            onChange={(e)=> setImage(e.target.value)}
@@ -64,7 +64,7 @@ export default function MyDropzone({nft}) {
                       <div {...getRootProps({className: style.dropzone})}>
                           <input {...getInputProps()}/>
                           <span>📂</span>
-                          <p>coloca tus imagenes aqui o clickea para seleccionar</p>
+                          <p>arrastra tu imagen aqui o clickea para seleccionar</p>
                       </div>
                   </section>
               )}

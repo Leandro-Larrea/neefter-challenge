@@ -114,37 +114,37 @@ export const Form = ()=>{
                 <div className={style.containerItems}>
                     <div className={style.item}>
                         <label className={style.label} htmlFor="name">Name: {!nft.name.length && "required"}</label>
-                        <input name="name" required={true} className={style.input} type="text"  onChange={handleInput} value={nft.name}></input>
+                        <input name="name" id="name" required={true} className={style.input} type="text"  onChange={handleInput} value={nft.name}></input>
                     </div>
                     <div className={style.item}>
                          <label className={style.label} htmlFor="recipient">Recipient:  {!nft.recipient.length && "required"}</label>
-                        <input name="recipient" required={true} className={style.input} type="text" onChange={handleInput} value={nft.recipient}></input>
+                        <input name="recipient" id="recipient" required={true} className={style.input} type="text" onChange={handleInput} value={nft.recipient}></input>
                     </div>
                     <div className={style.item}>
-                         <label className={style.label} htmlFor="recipient">Collection id: {!nft.recipient.length && "required"}</label>
-                        <select name="collection" value={nft.collection} onChange={handleInput}>
+                         <label className={style.label} htmlFor="collection">Collection id: {!nft.recipient.length && "required"}</label>
+                        <select name="collection" id="collection" value={nft.collection} onChange={handleInput}>
                             <option>solana</option>
                             <option>polygon</option>
                         </select>
                     </div> 
                     <div className={style.item}>
                          <label className={style.label} htmlFor="birth">birth: (optionally)</label>
-                        <input name="birth" className={style.input} type="date" onChange={handleInput} value={nft.birth}></input>
+                        <input name="birth" id="birth" className={style.input} type="date" onChange={handleInput} value={nft.birth}></input>
                     </div>   
                 </div>
                 
                         <label className={style.label} htmlFor="description">Description: {!nft.description.length && "required"}</label>
-                        <textarea required={true} name="description" className={style.textarea} type="text" onChange={handleInput} value={nft.description}></textarea>
+                        <textarea required={true} name="description" id="description" className={style.textarea} type="text" onChange={handleInput} value={nft.description}></textarea>
                         <p className={style.textLength}>{nft.description.length}/64</p>
                 
                 <div className={style.containerItems}>
                     <div className={style.item}>
                         <label className={style.label} htmlFor="nftKey">Property: (optionally)</label>
-                        <input onChange={handleProperty} name="nftKey" className={style.input} type="text"  value={property.nftKey}></input>
+                        <input onChange={handleProperty} name="nftKey" id="nftKey" className={style.input} type="text"  value={property.nftKey}></input>
                     </div>
                     <div className={style.item}>
                          <label className={style.label} htmlFor="nftValue">value:</label>
-                        <input onChange={handleProperty} name="nftValue" className={style.input} type="text" value={property.nftValue}></input>
+                        <input onChange={handleProperty} name="nftValue" id="nftValue" className={style.input} type="text" value={property.nftValue}></input>
                     </div>
                    
                     <button onClick={createProperty} className={style.properties}>Add</button>
